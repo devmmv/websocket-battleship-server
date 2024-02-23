@@ -1,6 +1,7 @@
 import { WebSocketServer } from "ws";
 import { rooms } from "./db";
 import { responseMsg } from "./responseMsg";
+import { IWebSocket, Room } from "./types";
 
 export class RoomHandler {
   counter = 1;
@@ -25,5 +26,23 @@ export class RoomHandler {
     wss.clients.forEach((client) => {
       return client.send(responseMsg("update_room", freeRooms));
     });
+  }
+  createRoom(client: IWebSocket) {
+    const room = Object.entries(rooms).find(
+      ([, room]) => room.admin === client.userName
+    );
+
+    if (room) return;
+
+    const roomId = this.counter++;
+
+    rooms[roomId] = {
+      roomId,
+      admin: client.userName,
+      playerId: -1,
+      players: [{ client, index: 0, isBot: false }],
+    };
+
+    return { roomId, room: rooms[roomId] as Room };
   }
 }

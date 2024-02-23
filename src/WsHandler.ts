@@ -13,6 +13,11 @@ export class WebSocketHandler {
     this.usersHandler.reg(message, client);
     this.responseToAll();
   }
+
+  createRoom(client: IWebSocket) {
+    if (this.roomHandler.createRoom(client)) this.responseToAll();
+  }
+
   private responseToAll() {
     this.roomHandler.updateRoom(this.wss);
     this.usersHandler.updateWinners(this.wss);
