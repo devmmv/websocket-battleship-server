@@ -1,6 +1,7 @@
 import { httpServer } from "./http_server/index";
 import { WebSocketServer } from "ws";
-import { IWebSocket } from "./types";
+import { IWebSocket, MsgType } from "./types";
+import { WebSocketHandler } from "./WsHandler";
 
 const HTTP_PORT = 8181;
 
@@ -10,7 +11,19 @@ httpServer.listen(HTTP_PORT);
 const wsServer = new WebSocketServer({ port: 3000 }, () => {
   console.log("WebSocket Ready!");
 });
+const wsHandler = new WebSocketHandler(wsServer);
 
 wsServer.on("connection", (client: IWebSocket) => {
   client.connected = true;
+
+  client.on("message", (msg) => {
+    const message: MsgType = JSON.parse(msg.toString());
+
+    switch (message.type) {
+      case "reg": {
+        wsHandler.reg(client, message);
+        break;
+      }
+    }
+  });
 });
