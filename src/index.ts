@@ -28,6 +28,10 @@ wsServer.on("connection", (client: IWebSocket) => {
         wsHandler.createRoom(client);
         break;
       }
+      case "add_user_to_room": {
+        wsHandler.addUserToRoom(client, message);
+        break;
+      }
     }
   });
 });

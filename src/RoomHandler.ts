@@ -45,4 +45,38 @@ export class RoomHandler {
 
     return { roomId, room: rooms[roomId] as Room };
   }
+
+  addUserToRoom(data: string, client: IWebSocket) {
+    const roomId = JSON.parse(data).indexRoom;
+    const room = rooms[roomId];
+    const players = room?.players;
+    const firstPlayer = players?.[0];
+
+    if (
+      !room ||
+      !firstPlayer ||
+      players.length !== 1 ||
+      room?.admin === client.userName
+    )
+      return;
+
+    rooms[roomId] = {
+      ...room,
+      players: [firstPlayer, { client, index: 1, isBot: false }],
+    };
+
+    return roomId;
+  }
+  createGame(roomId: number) {
+    rooms[roomId]?.players?.forEach(
+      ({ client, index }) =>
+        client &&
+        client.send(
+          responseMsg("create_game", {
+            idGame: roomId,
+            idPlayer: index,
+          })
+        )
+    );
+  }
 }

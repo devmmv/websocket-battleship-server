@@ -18,6 +18,15 @@ export class WebSocketHandler {
     if (this.roomHandler.createRoom(client)) this.responseToAll();
   }
 
+  addUserToRoom(client: IWebSocket, message: MsgType) {
+    const roomId = this.roomHandler.addUserToRoom(message.data, client);
+
+    if (roomId) {
+      this.responseToAll();
+      this.roomHandler.createGame(roomId);
+    }
+  }
+
   private responseToAll() {
     this.roomHandler.updateRoom(this.wss);
     this.usersHandler.updateWinners(this.wss);
