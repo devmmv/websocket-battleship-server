@@ -26,8 +26,22 @@ export class WebSocketHandler {
       this.roomHandler.createGame(roomId);
     }
   }
+
   addShips(message: MsgType) {
     this.roomHandler.addShips(message.data);
+  }
+
+  attack(message: MsgType) {
+    const winner = this.roomHandler.attack(message.data);
+
+    if (winner) {
+      this.usersHandler.addWinner(winner);
+      this.responseToAll();
+    }
+  }
+
+  randomAttack(message: MsgType) {
+    this.roomHandler.randomAttack(message.data);
   }
 
   private responseToAll() {

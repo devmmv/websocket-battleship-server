@@ -73,4 +73,10 @@ export class UsersHandler {
       client.send(responseMsg("update_winners", winners))
     );
   }
+
+  addWinner(userName: string) {
+    const user = users[userName];
+
+    if (user) user.wins += 1;
+  }
 }

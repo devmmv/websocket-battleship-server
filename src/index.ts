@@ -36,6 +36,14 @@ wsServer.on("connection", (client: IWebSocket) => {
         wsHandler.addShips(message);
         break;
       }
+      case "attack": {
+        wsHandler.attack(message);
+        break;
+      }
+      case "randomAttack": {
+        wsHandler.randomAttack(message);
+        break;
+      }
     }
   });
 });
