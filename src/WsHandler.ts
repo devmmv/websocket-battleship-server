@@ -44,6 +44,10 @@ export class WebSocketHandler {
     this.roomHandler.randomAttack(message.data);
   }
 
+  singlePlay(client: IWebSocket) {
+    this.roomHandler.singlePlay(client);
+  }
+
   private responseToAll() {
     this.roomHandler.updateRoom(this.wss);
     this.usersHandler.updateWinners(this.wss);

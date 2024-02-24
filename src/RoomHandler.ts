@@ -124,6 +124,11 @@ export class RoomHandler {
             currentPlayer: room.playerId,
           })
         );
+      if (isBot && room.playerId === index) {
+        setTimeout(() => {
+          this.randomAttack(JSON.stringify({ gameId, indexPlayer: index }));
+        }, 1000);
+      }
     });
   }
   private buildBoard(ships: Ship[] | undefined) {
@@ -229,6 +234,132 @@ export class RoomHandler {
           })
         );
     });
+  }
+
+  singlePlay(client: IWebSocket) {
+    const room = Object.entries(rooms).find(
+      ([, room]) => room.admin === client.userName
+    )?.[1];
+
+    if (room && room.players.length === 2) return;
+
+    const botPlayer = this.botPlayer();
+
+    let currentRoom = room;
+
+    if (!currentRoom) {
+      const roomId = this.createNewRoom(client)?.roomId as number;
+      currentRoom = rooms[roomId] as Room;
+    }
+
+    currentRoom.players = [currentRoom.players[0] as Player, botPlayer];
+
+    this.createGame(currentRoom.roomId);
+  }
+
+  botPlayer(): Player {
+    const ships = this.generateShipPositions();
+    return {
+      index: 1,
+      isBot: true,
+      ships,
+      board: this.buildBoard(ships),
+    };
+  }
+
+  private generateShipPositions() {
+    const ships: Ship[] = [];
+    const shipTypes = ["huge", "large", "medium", "small"];
+    const shipLengths = [4, 3, 2, 1];
+    const shipCounts = [1, 2, 3, 4];
+
+    const grid: boolean[][] = Array.from({ length: 10 }, () =>
+      new Array(10).fill(false)
+    );
+
+    for (let i = 0; i < shipTypes.length; i++) {
+      const shipType = shipTypes[i] as "small" | "medium" | "large" | "huge";
+      const shipLength = shipLengths[i] as number;
+      const shipCount = shipCounts[i] as number;
+
+      for (let j = 0; j < shipCount; j++) {
+        let isPlaced = false;
+
+        while (!isPlaced) {
+          const direction = Math.random() < 0.5;
+
+          const x = Math.floor(
+            Math.random() * (10 - (direction ? 0 : shipLength))
+          );
+
+          const y = Math.floor(
+            Math.random() * (10 - (direction ? shipLength : 0))
+          );
+
+          let isValidPlacement = true;
+
+          if (grid[x]?.[y]) continue;
+
+          for (let k = -1; k < shipLength + 1; k++) {
+            for (let l = -1; l < 2; l++) {
+              const newX = direction ? x + l : x + k;
+              const newY = direction ? y + k : y + l;
+
+              const cell = grid[newX]?.[newY];
+
+              if (cell) {
+                isValidPlacement = false;
+                break;
+              }
+            }
+          }
+
+          if (isValidPlacement) {
+            for (let s = 0; s < shipLength; s++) {
+              const newX = direction ? x : x + s;
+              const newY = direction ? y + s : y;
+
+              const cell = grid[newX]?.[newY];
+
+              if (cell === undefined) continue;
+
+              (grid[newX] as boolean[])[newY] = true;
+            }
+
+            ships.push({
+              position: { x, y },
+              direction,
+              length: shipLength,
+              type: shipType,
+              health: shipLength,
+            });
+
+            isPlaced = true;
+          }
+        }
+      }
+    }
+
+    return ships;
+  }
+
+  createNewRoom(client: IWebSocket) {
+    const room = Object.entries(rooms).find(
+      ([, room]) => room.admin === client.userName
+    );
+
+    if (room) return;
+
+    const roomId = this.counter++;
+
+    rooms[roomId] = {
+      roomId,
+      admin: client.userName,
+      playerId: -1,
+      players: [{ client, index: 0, isBot: false }],
+    };
+
+    return { roomId, gameRoom: rooms[roomId] as Room };
   }
 
   private markKilledShipAround(room: Room, enemy: Player, shipIndex: number) {

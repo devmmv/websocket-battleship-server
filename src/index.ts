@@ -44,6 +44,10 @@ wsServer.on("connection", (client: IWebSocket) => {
         wsHandler.randomAttack(message);
         break;
       }
+      case "single_play": {
+        wsHandler.singlePlay(client);
+        break;
+      }
     }
   });
 });
