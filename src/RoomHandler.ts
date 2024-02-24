@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import { rooms } from "./db";
 import { responseMsg } from "./responseMsg";
-import { IWebSocket, Room } from "./types";
+import { IWebSocket, Room, Ship } from "./types";
 
 export class RoomHandler {
   counter = 1;
@@ -78,5 +78,77 @@ export class RoomHandler {
           })
         )
     );
+  }
+
+  addShips(data: string) {
+    const { gameId, indexPlayer, ships } = JSON.parse(data);
+
+    const room = rooms[gameId];
+    const players = room?.players;
+    const player = players?.[indexPlayer];
+
+    if (!room || !player) return;
+
+    player.ships = ships;
+    player.board = this.buildBoard(player.ships);
+
+    if (players.every((player) => !!player.ships)) {
+      players.forEach(
+        ({ client, ships }) =>
+          client &&
+          client.send(
+            responseMsg("start_game", {
+              currentPlayerIndex: player.index,
+              ships,
+            })
+          )
+      );
+
+      this.turn(gameId, player.index === 1 ? 0 : 1);
+    }
+  }
+
+  private turn(gameId: number, nextPlayerId?: number) {
+    const room = rooms[gameId];
+
+    if (!room || !room.players) return;
+
+    if (nextPlayerId !== undefined) {
+      room.playerId = nextPlayerId;
+    }
+
+    room.players.forEach(({ client, isBot, index }) => {
+      client &&
+        client.send(
+          responseMsg("turn", {
+            currentPlayer: room.playerId,
+          })
+        );
+    });
+  }
+  private buildBoard(ships: Ship[] | undefined) {
+    if (!ships) return;
+
+    const board = Array.from({ length: 10 }, () =>
+      Array.from({ length: 10 }, () => ({
+        ...{ shipIndex: -1, isAttacked: false },
+      }))
+    );
+
+    ships.forEach((ship, index) => {
+      ship.health = ship.length;
+
+      const { x, y } = ship.position;
+
+      for (let i = 0; i < ship.length; i++) {
+        const cell = ship.direction ? board[x]?.[y + i] : board[x + i]?.[y];
+
+        if (cell && cell.shipIndex === -1) {
+          cell.shipIndex = index;
+        }
+      }
+    });
+
+    return board;
   }
 }

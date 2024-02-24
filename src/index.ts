@@ -32,6 +32,10 @@ wsServer.on("connection", (client: IWebSocket) => {
         wsHandler.addUserToRoom(client, message);
         break;
       }
+      case "add_ships": {
+        wsHandler.addShips(message);
+        break;
+      }
     }
   });
 });

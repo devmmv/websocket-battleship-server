@@ -26,6 +26,9 @@ export class WebSocketHandler {
       this.roomHandler.createGame(roomId);
     }
   }
+  addShips(message: MsgType) {
+    this.roomHandler.addShips(message.data);
+  }
 
   private responseToAll() {
     this.roomHandler.updateRoom(this.wss);
