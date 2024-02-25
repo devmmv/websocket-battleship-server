@@ -131,6 +131,24 @@ export class RoomHandler {
       }
     });
   }
+
+  closeRoom(client: IWebSocket) {
+    const room = Object.entries(rooms).find(
+      ([, room]) =>
+        room.admin === client.userName ||
+        room.players[1]?.client?.userName === client.userName
+    )?.[1];
+
+    if (!room) return;
+
+    const winnerIndex = room.admin === client.userName ? 1 : 0;
+    const winner = room.players[winnerIndex]?.client?.userName;
+    this.finishGame(room.players, winnerIndex);
+
+    delete rooms?.[room.roomId];
+    return winner;
+  }
+
   private buildBoard(ships: Ship[] | undefined) {
     if (!ships) return;
 

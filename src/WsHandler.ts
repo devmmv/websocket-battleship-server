@@ -52,4 +52,14 @@ export class WebSocketHandler {
     this.roomHandler.updateRoom(this.wss);
     this.usersHandler.updateWinners(this.wss);
   }
+
+  cleanUp(client: IWebSocket) {
+    const winner = this.roomHandler.closeRoom(client);
+    if (winner) {
+      this.usersHandler.addWinner(winner);
+      this.responseToAll();
+    }
+    client.connected = false;
+    client.terminate();
+  }
 }

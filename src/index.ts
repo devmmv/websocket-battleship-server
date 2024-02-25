@@ -1,5 +1,5 @@
 import { httpServer } from "./http_server/index";
-import { WebSocketServer } from "ws";
+import { WebSocket, WebSocketServer } from "ws";
 import { IWebSocket, MsgType } from "./types";
 import { WebSocketHandler } from "./WsHandler";
 
@@ -50,4 +50,41 @@ wsServer.on("connection", (client: IWebSocket) => {
       }
     }
   });
+
+  client.on("error", console.error);
+
+  client.on("pong", () => {
+    client.connected = true;
+  });
+
+  client.on("close", () => {
+    wsHandler.cleanUp(client);
+  });
+
+  process.on("SIGINT", () => {
+    clearInterval(interval);
+
+    wsServer.clients.forEach((client: WebSocket) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.close();
+      }
+    });
+
+    wsServer.close();
+    httpServer.close();
+    process.exit();
+  });
 });
+
+const interval = setInterval(function ping() {
+  wsServer.clients.forEach(function each(ws: WebSocket) {
+    const client = ws as IWebSocket;
+
+    if (client.connected === false) {
+      return client.terminate();
+    }
+
+    client.connected = false;
+    client.ping();
+  });
+}, 20000);
