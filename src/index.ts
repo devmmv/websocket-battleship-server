@@ -9,7 +9,7 @@ console.log(`Start static http server on the ${HTTP_PORT} port!`);
 httpServer.listen(HTTP_PORT);
 
 const wsServer = new WebSocketServer({ port: 3000 }, () => {
-  console.log("WebSocket Ready!");
+  console.log(`Start WebSocket server on the ${wsServer.options.port} port!`);
 });
 const wsHandler = new WebSocketHandler(wsServer);
 
@@ -21,18 +21,22 @@ wsServer.on("connection", (client: IWebSocket) => {
 
     switch (message.type) {
       case "reg": {
+        console.log("-->  reg");
         wsHandler.reg(client, message);
         break;
       }
       case "create_room": {
+        console.log("-->  create_room");
         wsHandler.createRoom(client);
         break;
       }
       case "add_user_to_room": {
+        console.log("-->  add_user_room");
         wsHandler.addUserToRoom(client, message);
         break;
       }
       case "add_ships": {
+        console.log("-->  add_ships");
         wsHandler.addShips(message);
         break;
       }
@@ -41,10 +45,12 @@ wsServer.on("connection", (client: IWebSocket) => {
         break;
       }
       case "randomAttack": {
+        console.log("-->  randomAttack");
         wsHandler.randomAttack(message);
         break;
       }
       case "single_play": {
+        console.log("-->  single_play");
         wsHandler.singlePlay(client);
         break;
       }

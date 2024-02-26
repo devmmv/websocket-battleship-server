@@ -26,6 +26,7 @@ export class RoomHandler {
     wss.clients.forEach((client) => {
       return client.send(responseMsg("update_room", freeRooms));
     });
+    console.log("<--  update_room");
   }
   createRoom(client: IWebSocket) {
     const room = Object.entries(rooms).find(
@@ -78,6 +79,7 @@ export class RoomHandler {
           })
         )
     );
+    console.log("<--  create_game");
   }
 
   addShips(data: string) {
@@ -105,6 +107,8 @@ export class RoomHandler {
       );
 
       this.turn(gameId, player.index === 1 ? 0 : 1);
+      console.log("<--  start_game");
+      console.log("<--  turn");
     }
   }
 
@@ -210,6 +214,7 @@ export class RoomHandler {
           })
         )
     );
+    console.log("<--  attack");
 
     if (isWin) {
       this.finishGame(players, indexPlayer);
@@ -220,6 +225,7 @@ export class RoomHandler {
     }
 
     this.turn(gameId, status === "miss" ? enemyId : undefined);
+    console.log("<--  turn");
   }
 
   randomAttack(dataString: string) {
@@ -244,6 +250,7 @@ export class RoomHandler {
   }
 
   finishGame(players: Player[], winnerIndex: number) {
+    console.log("<--  finishGame");
     players.forEach(({ client }) => {
       client &&
         client.send(

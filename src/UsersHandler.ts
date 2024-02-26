@@ -25,8 +25,11 @@ export class UsersHandler {
           errorText: "",
         })
       );
+      console.log("<--  reg");
     } else {
       if (user.client.connected) {
+        console.log("User is already exists");
+
         return client.send(
           responseMsg(type, {
             name,
@@ -38,6 +41,8 @@ export class UsersHandler {
       }
 
       if (user.password !== password) {
+        console.log("Password is incorrect");
+
         return client.send(
           responseMsg(type, {
             name,
@@ -59,6 +64,7 @@ export class UsersHandler {
           errorText: "",
         })
       );
+      console.log("<--  reg");
     }
   }
   updateWinners(wss: WebSocketServer) {
@@ -72,6 +78,7 @@ export class UsersHandler {
     wss.clients.forEach((client) =>
       client.send(responseMsg("update_winners", winners))
     );
+    console.log("<--  update_winners");
   }
 
   addWinner(userName: string) {
